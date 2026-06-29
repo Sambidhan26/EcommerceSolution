@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <Folder Include="Controllers\" />
     <Folder Include="DTOs\" />
     <Folder Include="Mapping\" />
     <Folder Include="Extensions\" />
