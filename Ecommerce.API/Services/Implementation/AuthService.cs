@@ -20,6 +20,7 @@ namespace Ecommerce.API.Services.Implementation
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
         {
+            // Validate password confirmation
             if (request.Password != request.ConfirmPassword)
             {
                 return new AuthResponseDto
@@ -29,6 +30,7 @@ namespace Ecommerce.API.Services.Implementation
                 };
             }
 
+            // Check if email already exists
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
             if (existingUser != null)
@@ -40,6 +42,7 @@ namespace Ecommerce.API.Services.Implementation
                 };
             }
 
+            // Create new user
             var user = new ApplicationUser
             {
                 UserName = request.Email,
@@ -48,6 +51,7 @@ namespace Ecommerce.API.Services.Implementation
                 LastName = request.LastName
             };
 
+            // Save user
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
@@ -55,24 +59,23 @@ namespace Ecommerce.API.Services.Implementation
                 return new AuthResponseDto
                 {
                     IsSuccess = false,
-                    Message = string.Join(
-                        ", ",
-                        result.Errors.Select(e => e.Description))
+                    Message = string.Join(", ", result.Errors.Select(e => e.Description))
                 };
-
             }
-            
+
+            // Assign Customer role
             await _userManager.AddToRoleAsync(user, "Customer");
 
+            // Generate JWT
             var token = await _jwtTokenService.GenerateTokenAsync(user);
 
+            // Return success response
             return new AuthResponseDto
             {
                 IsSuccess = true,
                 Message = "Registration successful.",
                 Token = token,
-                Expiration = DateTime.UtcNow.AddMinutes(60),
-
+                Expiration = DateTime.UtcNow.AddMinutes(60), // We'll improve this later
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -83,9 +86,51 @@ namespace Ecommerce.API.Services.Implementation
             };
         }
 
-        public Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
         {
-            throw new NotImplementedException();
+            var user = await _userManager.FindByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                return new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password."
+                };
+            }
+
+            var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+
+            if (!isPasswordValid)
+            {
+                return new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password."
+                };
+            }
+
+            var token = await _jwtTokenService.GenerateTokenAsync(user);
+
+            return new AuthResponseDto
+            {
+                IsSuccess = true,
+                Message = "Login successful.",
+
+                Token = token,
+
+                Expiration = DateTime.UtcNow.AddMinutes(60),
+
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email!
+                }
+            };
+
+
         }
     }
-}
+ }

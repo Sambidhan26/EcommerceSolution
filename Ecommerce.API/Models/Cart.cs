@@ -1,8 +1,7 @@
 ﻿namespace Ecommerce.API.Models
 {
-    public class Cart
+    public class Cart : BaseEntity
     {
-        public int Id { get; set; }
 
         // Foreign Key
         public string UserId { get; set; }

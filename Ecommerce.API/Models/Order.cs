@@ -1,8 +1,7 @@
 ﻿namespace Ecommerce.API.Models
 {
-    public class Order
+    public class Order : BaseEntity
     {
-        public int Id { get; set; }
 
         public DateTime OrderDate { get; set; }
             = DateTime.UtcNow;
