@@ -1,9 +1,11 @@
 using Ecommerce.API.Configurations;
 using Ecommerce.API.Data;
 using Ecommerce.API.Models;
+using Ecommerce.API.Services.Implementation;
+using Ecommerce.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -47,11 +49,23 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager =
+        scope.ServiceProvider
+             .GetRequiredService<RoleManager<IdentityRole>>();
+
+    await DbInitializer.SeedRolesAsync(roleManager);
+}
 
 app.UseHttpsRedirection();
 
