@@ -24,7 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Mapping\" />
+    <Folder Include="DTOs\Order\" />
+    <Folder Include="DTOs\Product\" />
     <Folder Include="Extensions\" />
     <Folder Include="Common\" />
     <Folder Include="Repositories\" />
