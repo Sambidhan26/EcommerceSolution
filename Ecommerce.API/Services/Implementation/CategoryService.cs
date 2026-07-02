@@ -35,9 +35,18 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<CategoryDto>(category);
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var category = await _repository.GetByIdAsync(id);
+
+            if (category == null)
+                return false;
+
+            await _repository.DeleteAsync(category);
+
+            await _repository.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<IEnumerable<CategoryDto>> GetAllAsync()
@@ -57,9 +66,26 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<CategoryDto>(category);
         }
 
-        public Task<bool> UpdateAsync(int id, UpdateCategoryDto dto)
+        public async Task<bool> UpdateAsync(int id, UpdateCategoryDto dto)
         {
-            throw new NotImplementedException();
+            var category = await _repository.GetByIdAsync(id);
+
+            if (category == null)
+                return false;
+
+            if (await _repository.ExistsByNameAsync(dto.Name) &&
+                !string.Equals(category.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Category already exists.");
+            }
+
+            _mapper.Map(dto, category);
+
+            await _repository.UpdateAsync(category);
+
+            await _repository.SaveChangesAsync();
+
+            return true;
         }
     }
 }
