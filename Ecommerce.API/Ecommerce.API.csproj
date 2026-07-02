@@ -28,7 +28,6 @@
     <Folder Include="DTOs\Product\" />
     <Folder Include="Extensions\" />
     <Folder Include="Common\" />
-    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>

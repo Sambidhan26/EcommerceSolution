@@ -2,6 +2,7 @@
 using Ecommerce.API.Models;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Ecommerce.API.Services.Implementation
 {
@@ -32,9 +33,31 @@ namespace Ecommerce.API.Services.Implementation
             return await _dbSet.AnyAsync(x => x.Id == id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null,
+             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+             string? includeProperties = null)
         {
-            return await _dbSet.ToListAsync();
+            IQueryable<T> query = _dbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(includeProperties))
+            {
+                foreach (var includeProperty in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProperty);
+                }
+            }
+
+            if (orderBy != null)
+            {
+                return await orderBy(query).ToListAsync();
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<T?> GetByIdAsync(int id)
