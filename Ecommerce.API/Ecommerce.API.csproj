@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Folder Include="DTOs\Order\" />
-    <Folder Include="DTOs\Product\" />
     <Folder Include="Extensions\" />
     <Folder Include="Common\" />
   </ItemGroup>

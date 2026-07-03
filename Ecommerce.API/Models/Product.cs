@@ -13,12 +13,11 @@
 
         public int StockQuantity { get; set; }
 
+        public string SKU { get; set; } = string.Empty;
+
         public string? ImageUrl { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-            = DateTime.UtcNow;
-
-        public DateTime? UpdatedAt { get; set; }
+        public bool IsFeatured { get; set; } = false;
 
         // Foreign Key
         public int CategoryId { get; set; }
