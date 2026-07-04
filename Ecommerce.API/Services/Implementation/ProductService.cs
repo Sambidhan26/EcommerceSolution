@@ -28,7 +28,6 @@ namespace Ecommerce.API.Services.Implementation
         }
         public async Task<ProductDto> CreateAsync(CreateProductDto dto)
         {
-            // Check if category exists
             var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
 
             if (category == null)
@@ -36,16 +35,13 @@ namespace Ecommerce.API.Services.Implementation
                 throw new Exception("Category not found.");
             }
 
-            // Map DTO to Product
             var product = _mapper.Map<Product>(dto);
 
-            // Generate SKU
             product.SKU = GenerateSku();
 
-            // Save Product
             await _productRepository.CreateAsync(product);
+            await _productRepository.SaveChangesAsync();
 
-            // Retrieve Product with Category included
             var createdProduct = await _productRepository
                 .GetProductWithCategoryAsync(product.Id);
 
@@ -57,9 +53,19 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<ProductDto>(createdProduct);
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var product = await _productRepository.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return false;
+            }
+
+            await _productRepository.DeleteAsync(product);
+            await _productRepository.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<IEnumerable<ProductDto>> GetAllAsync()
@@ -69,31 +75,63 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public Task<ProductDto?> GetByIdAsync(int id)
+        public async Task<ProductDto?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var product = await _productRepository.GetProductWithCategoryAsync(id);
+
+            if (product == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<ProductDto>(product);
         }
 
-        public Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync()
+        public async Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync()
         {
-            throw new NotImplementedException();
+            var products = await _productRepository.GetFeaturedProductsAsync();
+
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId)
+        public async Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId)
         {
-            throw new NotImplementedException();
+            var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
+
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public Task<IEnumerable<ProductDto>> SearchAsync(string keyword)
+        public async Task<IEnumerable<ProductDto>> SearchAsync(string keyword)
         {
-            throw new NotImplementedException();
+            var products = await _productRepository.SearchByNameAsync(keyword);
+
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public Task<bool> UpdateAsync(int id, UpdateProductDto dto)
+        public async Task<ProductDto> UpdateAsync(int id, UpdateProductDto dto)
         {
-            throw new NotImplementedException();
-        }
+            var product = await _productRepository.GetByIdAsync(id);
 
-        
+            if (product == null)
+            {
+                return null;
+            }
+
+            var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
+
+            if (category == null)
+            {
+                throw new Exception("Category not found.");
+            }
+
+            _mapper.Map(dto, product);
+
+            await _productRepository.UpdateAsync(product);
+            await _productRepository.SaveChangesAsync();
+
+            var updatedProduct = await _productRepository.GetProductWithCategoryAsync(id);
+
+            return _mapper.Map<ProductDto>(updatedProduct);
+        }
     }
-    }
+}
