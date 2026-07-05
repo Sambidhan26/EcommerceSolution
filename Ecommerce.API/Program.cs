@@ -1,6 +1,8 @@
 using Ecommerce.API.Configurations;
+using Ecommerce.API.Common;
 using Ecommerce.API.Data;
 using Ecommerce.API.Mapping;
+using Ecommerce.API.Middleware;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Implementation;
 using Ecommerce.API.Repositories.Interfaces;
@@ -8,8 +10,10 @@ using Ecommerce.API.Services.Implementation;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +23,16 @@ builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services
+    .AddOptions<JwtSettings>()
+    .Bind(builder.Configuration.GetSection("Jwt"))
+    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Key), "JWT key is required.")
+    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Issuer), "JWT issuer is required.")
+    .Validate(settings => !string.IsNullOrWhiteSpace(settings.Audience), "JWT audience is required.")
+    .Validate(settings => settings.DurationInMinutes > 0, "JWT duration must be greater than zero.")
+    .ValidateOnStart();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -45,10 +59,28 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("Jwt"));
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(entry => entry.Value?.Errors.Count > 0)
+                .SelectMany(entry => entry.Value!.Errors.Select(error => error.ErrorMessage))
+                .ToArray();
 
-builder.Services.AddControllers();
+            var response = new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = errors.Length == 0
+                    ? "The request is invalid."
+                    : string.Join(" ", errors),
+                TraceId = context.HttpContext.TraceIdentifier
+            };
+
+            return new BadRequestObjectResult(response);
+        };
+    });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -65,6 +97,33 @@ builder.Services.AddScoped<IProductService, ProductService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter a valid JWT bearer token."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -75,6 +134,14 @@ using (var scope = app.Services.CreateScope())
              .GetRequiredService<RoleManager<IdentityRole>>();
 
     await DbInitializer.SeedRolesAsync(roleManager);
+}
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

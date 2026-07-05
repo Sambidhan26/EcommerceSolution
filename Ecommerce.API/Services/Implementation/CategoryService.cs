@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using Ecommerce.API.Common.Exceptions;
 using Ecommerce.API.DTOs.Category;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
@@ -18,18 +19,17 @@ namespace Ecommerce.API.Services.Implementation
             _repository = repository;
             _mapper = mapper;
         }
+
         public async Task<CategoryDto> CreateAsync(CreateCategoryDto dto)
         {
             if (await _repository.ExistsByNameAsync(dto.Name))
             {
-                throw new InvalidOperationException(
-                    "Category already exists.");
+                throw new ConflictException("Category already exists.");
             }
 
             var category = _mapper.Map<Category>(dto);
 
             await _repository.CreateAsync(category);
-
             await _repository.SaveChangesAsync();
 
             return _mapper.Map<CategoryDto>(category);
@@ -40,10 +40,11 @@ namespace Ecommerce.API.Services.Implementation
             var category = await _repository.GetByIdAsync(id);
 
             if (category == null)
+            {
                 return false;
+            }
 
             await _repository.DeleteAsync(category);
-
             await _repository.SaveChangesAsync();
 
             return true;
@@ -61,7 +62,9 @@ namespace Ecommerce.API.Services.Implementation
             var category = await _repository.GetByIdAsync(id);
 
             if (category == null)
+            {
                 return null;
+            }
 
             return _mapper.Map<CategoryDto>(category);
         }
@@ -71,18 +74,19 @@ namespace Ecommerce.API.Services.Implementation
             var category = await _repository.GetByIdAsync(id);
 
             if (category == null)
+            {
                 return false;
+            }
 
             if (await _repository.ExistsByNameAsync(dto.Name) &&
                 !string.Equals(category.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Category already exists.");
+                throw new ConflictException("Category already exists.");
             }
 
             _mapper.Map(dto, category);
 
             await _repository.UpdateAsync(category);
-
             await _repository.SaveChangesAsync();
 
             return true;

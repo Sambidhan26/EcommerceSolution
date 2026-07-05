@@ -1,7 +1,9 @@
-﻿using Ecommerce.API.DTOs.Auth;
+using Ecommerce.API.Configurations;
+using Ecommerce.API.DTOs.Auth;
 using Ecommerce.API.Models;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace Ecommerce.API.Services.Implementation
 {
@@ -9,18 +11,20 @@ namespace Ecommerce.API.Services.Implementation
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly JwtSettings _jwtSettings;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            IJwtTokenService jwtTokenService)
+            IJwtTokenService jwtTokenService,
+            IOptions<JwtSettings> jwtSettings)
         {
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
+            _jwtSettings = jwtSettings.Value;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
         {
-            // Validate password confirmation
             if (request.Password != request.ConfirmPassword)
             {
                 return new AuthResponseDto
@@ -30,7 +34,6 @@ namespace Ecommerce.API.Services.Implementation
                 };
             }
 
-            // Check if email already exists
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
             if (existingUser != null)
@@ -42,7 +45,6 @@ namespace Ecommerce.API.Services.Implementation
                 };
             }
 
-            // Create new user
             var user = new ApplicationUser
             {
                 UserName = request.Email,
@@ -51,7 +53,6 @@ namespace Ecommerce.API.Services.Implementation
                 LastName = request.LastName
             };
 
-            // Save user
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
@@ -63,19 +64,25 @@ namespace Ecommerce.API.Services.Implementation
                 };
             }
 
-            // Assign Customer role
-            await _userManager.AddToRoleAsync(user, "Customer");
+            var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
 
-            // Generate JWT
+            if (!roleResult.Succeeded)
+            {
+                return new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = string.Join(", ", roleResult.Errors.Select(e => e.Description))
+                };
+            }
+
             var token = await _jwtTokenService.GenerateTokenAsync(user);
 
-            // Return success response
             return new AuthResponseDto
             {
                 IsSuccess = true,
                 Message = "Registration successful.",
                 Token = token,
-                Expiration = DateTime.UtcNow.AddMinutes(60), // We'll improve this later
+                Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -116,11 +123,8 @@ namespace Ecommerce.API.Services.Implementation
             {
                 IsSuccess = true,
                 Message = "Login successful.",
-
                 Token = token,
-
-                Expiration = DateTime.UtcNow.AddMinutes(60),
-
+                Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -129,8 +133,6 @@ namespace Ecommerce.API.Services.Implementation
                     Email = user.Email!
                 }
             };
-
-
         }
     }
- }
+}

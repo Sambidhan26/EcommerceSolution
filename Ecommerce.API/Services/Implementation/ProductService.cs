@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using Ecommerce.API.Common.Exceptions;
 using Ecommerce.API.DTOs.Product;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
@@ -26,13 +27,14 @@ namespace Ecommerce.API.Services.Implementation
         {
             return $"PRD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
         }
+
         public async Task<ProductDto> CreateAsync(CreateProductDto dto)
         {
             var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
 
             if (category == null)
             {
-                throw new Exception("Category not found.");
+                throw new NotFoundException("Category not found.");
             }
 
             var product = _mapper.Map<Product>(dto);
@@ -47,7 +49,7 @@ namespace Ecommerce.API.Services.Implementation
 
             if (createdProduct == null)
             {
-                throw new Exception("Product could not be retrieved.");
+                throw new InvalidOperationException("Product could not be retrieved.");
             }
 
             return _mapper.Map<ProductDto>(createdProduct);
@@ -108,7 +110,7 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<ProductDto> UpdateAsync(int id, UpdateProductDto dto)
+        public async Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto)
         {
             var product = await _productRepository.GetByIdAsync(id);
 
@@ -121,7 +123,7 @@ namespace Ecommerce.API.Services.Implementation
 
             if (category == null)
             {
-                throw new Exception("Category not found.");
+                throw new NotFoundException("Category not found.");
             }
 
             _mapper.Map(dto, product);
