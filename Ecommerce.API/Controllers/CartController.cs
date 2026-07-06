@@ -3,12 +3,14 @@ using Ecommerce.API.DTOs.Cart;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;

@@ -1,102 +1,130 @@
 using AutoMapper;
-using Ecommerce.API.Common.Exceptions;
-using Ecommerce.API.Data;
 using Ecommerce.API.DTOs.Cart;
 using Ecommerce.API.Models;
+using Ecommerce.API.Repositories.Implementation;
+using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.API.Services.Implementation
 {
     public class CartService : ICartService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ICartRepository _cartRepository;
+        private readonly ICartItemRepository _cartItemRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
 
         public CartService(
-            ApplicationDbContext context,
+            ICartRepository cartRepository,
+            ICartItemRepository cartItemRepository,
+            IProductRepository productRepository,
             IMapper mapper)
         {
-            _context = context;
+            _cartRepository = cartRepository;
+            _cartItemRepository = cartItemRepository;
+            _productRepository = productRepository;
             _mapper = mapper;
         }
 
         public async Task<CartDto> AddToCartAsync(string userId, AddToCartDto dto)
         {
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                throw new BadRequestException("User id is required.");
-            }
-
-            if (dto.Quantity <= 0)
-            {
-                throw new BadRequestException("Quantity must be greater than zero.");
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
+            // Step 1: Verify Product Exists
+            var product = await _productRepository.GetByIdAsync(dto.ProductId);
 
             if (product == null)
             {
-                throw new NotFoundException("Product not found.");
+                throw new Exception("Product not found.");
             }
 
-            if (product.StockQuantity < dto.Quantity)
-            {
-                throw new BadRequestException("Requested quantity is not available.");
-            }
+            // Step 2: Get User Cart
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
-            var cart = await _context.Carts
-                .Include(c => c.CartItems)
-                    .ThenInclude(ci => ci.Product)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
-
+            // Step 3: Create Cart if it doesn't exist
             if (cart == null)
             {
                 cart = new Cart
                 {
-                    UserId = userId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UserId = userId
                 };
 
-                await _context.Carts.AddAsync(cart);
+                await _cartRepository.CreateAsync(cart);
+                await _cartRepository.SaveChangesAsync();
             }
 
-            var existingItem = cart.CartItems
-                .FirstOrDefault(item => item.ProductId == dto.ProductId);
+            // Step 4: Check whether product already exists in cart
+            var cartItem = await _cartItemRepository
+                .GetCartItemAsync(cart.Id, dto.ProductId);
 
-            if (existingItem == null)
+            if (cartItem != null)
             {
-                cart.CartItems.Add(new CartItem
-                {
-                    ProductId = product.Id,
-                    Product = product,
-                    Quantity = dto.Quantity,
-                    UnitPrice = product.Price,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
+                // Product already exists -> Increase quantity
+                cartItem.Quantity += dto.Quantity;
+
+                await _cartItemRepository.UpdateAsync(cartItem);
             }
             else
             {
-                var newQuantity = existingItem.Quantity + dto.Quantity;
-
-                if (product.StockQuantity < newQuantity)
+                // Create new CartItem
+                cartItem = new CartItem
                 {
-                    throw new BadRequestException("Requested quantity is not available.");
-                }
+                    CartId = cart.Id,
+                    ProductId = product.Id,
+                    Quantity = dto.Quantity,
+                    UnitPrice = product.Price
+                };
 
-                existingItem.Quantity = newQuantity;
-                existingItem.UnitPrice = product.Price;
-                existingItem.UpdatedAt = DateTime.UtcNow;
+                await _cartItemRepository.CreateAsync(cartItem);
             }
 
-            cart.UpdatedAt = DateTime.UtcNow;
+            await _cartItemRepository.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
+            // Step 5: Reload cart with products
+            cart = await _cartRepository.GetCartWithItemsAsync(userId);
 
-            return _mapper.Map<CartDto>(cart);
+            if (cart == null)
+            {
+                throw new Exception("Unable to load cart.");
+            }
+
+            // Step 6: Build DTO
+            return new CartDto
+            {
+                Id = cart.Id,
+
+                TotalItems = cart.CartItems.Sum(x => x.Quantity),
+
+                TotalPrice = cart.CartItems.Sum(x => x.Quantity * x.UnitPrice),
+
+                Items = cart.CartItems.Select(x => new CartItemDto
+                {
+                    Id = x.Id,
+                    ProductId = x.ProductId,
+                    ProductName = x.Product?.Name ?? string.Empty,
+                    Quantity = x.Quantity,
+                    UnitPrice = x.UnitPrice,
+                    SubTotal = x.Quantity * x.UnitPrice
+                }).ToList()
+            };
+        }
+
+        public Task ClearCartAsync(string userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CartDto?> GetCartAsync(string userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveCartItemAsync(string userId, int cartItemId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CartDto> UpdateCartItemAsync(string userId, int cartItemId, UpdateCartItemDto dto)
+        {
+            throw new NotImplementedException();
         }
     }
 }
