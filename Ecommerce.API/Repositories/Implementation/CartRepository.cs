@@ -17,20 +17,6 @@ namespace Ecommerce.API.Repositories.Implementation
         {
             _context = context;
         }
-        public Task CreateAsync(Cart entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(Cart entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Cart>> GetAllAsync(Expression<Func<Cart, bool>>? filter = null, Func<IQueryable<Cart>, IOrderedQueryable<Cart>>? orderBy = null, string? includeProperties = null)
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task<Cart?> GetCartByUserIdAsync(string userId)
         {
@@ -45,16 +31,6 @@ namespace Ecommerce.API.Repositories.Implementation
                 .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
-        }
-
-        public Task UpdateAsync(Cart entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<Cart?> IGenericRepository<Cart>.GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -4,6 +4,7 @@ using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Implementation;
 using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Interfaces;
+using System;
 
 namespace Ecommerce.API.Services.Implementation
 {
@@ -29,6 +30,7 @@ namespace Ecommerce.API.Services.Implementation
         public async Task<CartDto> AddToCartAsync(string userId, AddToCartDto dto)
         {
             // Step 1: Verify Product Exists
+            Console.WriteLine("Step 1");
             var product = await _productRepository.GetByIdAsync(dto.ProductId);
 
             if (product == null)
@@ -37,9 +39,11 @@ namespace Ecommerce.API.Services.Implementation
             }
 
             // Step 2: Get User Cart
+            Console.WriteLine("Step 2");
             var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
             // Step 3: Create Cart if it doesn't exist
+            Console.WriteLine("Step 3");
             if (cart == null)
             {
                 cart = new Cart
@@ -49,8 +53,10 @@ namespace Ecommerce.API.Services.Implementation
 
                 await _cartRepository.CreateAsync(cart);
                 await _cartRepository.SaveChangesAsync();
-            }
 
+                Console.WriteLine($"Cart created with Id = {cart.Id}");
+            }
+            Console.WriteLine("Step 4");
             // Step 4: Check whether product already exists in cart
             var cartItem = await _cartItemRepository
                 .GetCartItemAsync(cart.Id, dto.ProductId);
@@ -87,24 +93,7 @@ namespace Ecommerce.API.Services.Implementation
             }
 
             // Step 6: Build DTO
-            return new CartDto
-            {
-                Id = cart.Id,
-
-                TotalItems = cart.CartItems.Sum(x => x.Quantity),
-
-                TotalPrice = cart.CartItems.Sum(x => x.Quantity * x.UnitPrice),
-
-                Items = cart.CartItems.Select(x => new CartItemDto
-                {
-                    Id = x.Id,
-                    ProductId = x.ProductId,
-                    ProductName = x.Product?.Name ?? string.Empty,
-                    Quantity = x.Quantity,
-                    UnitPrice = x.UnitPrice,
-                    SubTotal = x.Quantity * x.UnitPrice
-                }).ToList()
-            };
+            return _mapper.Map<CartDto>(cart);
         }
 
         public Task ClearCartAsync(string userId)
