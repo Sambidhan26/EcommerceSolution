@@ -96,9 +96,30 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<CartDto>(cart);
         }
 
-        public Task ClearCartAsync(string userId)
+        public async Task<CartDto?> ClearCartAsync(string userId)
         {
-            throw new NotImplementedException();
+            var cart = await _cartRepository.GetCartWithItemsAsync(userId);
+
+            if (cart == null)
+            {
+                return null;
+            }
+
+            foreach (var item in cart.CartItems.ToList())
+            {
+                await _cartItemRepository.DeleteAsync(item);
+            }
+
+            await _cartItemRepository.SaveChangesAsync();
+
+            cart = await _cartRepository.GetCartWithItemsAsync(userId);
+
+            if (cart == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<CartDto>(cart);
         }
 
         public async Task<CartDto?> GetCartAsync(string userId)
@@ -113,14 +134,67 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<CartDto>(cart);
         }
 
-        public Task RemoveCartItemAsync(string userId, int cartItemId)
+        public async Task<CartDto?> RemoveCartItemAsync( string userId, int cartItemId)
         {
-            throw new NotImplementedException();
+            var cartItem = await _cartItemRepository
+                .GetCartItemWithCartAsync(cartItemId);
+
+            if (cartItem == null)
+            {
+                return null;
+            }
+
+            if (cartItem.Cart == null ||
+                cartItem.Cart.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You are not allowed to modify this cart.");
+            }
+
+            await _cartItemRepository.DeleteAsync(cartItem);
+            await _cartItemRepository.SaveChangesAsync();
+
+            var cart = await _cartRepository
+                .GetCartWithItemsAsync(userId);
+
+            if (cart == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<CartDto>(cart);
         }
 
-        public Task<CartDto> UpdateCartItemAsync(string userId, int cartItemId, UpdateCartItemDto dto)
+        public async Task<CartDto?> UpdateCartItemAsync(string userId,int cartItemId,UpdateCartItemDto dto)
         {
-            throw new NotImplementedException();
+            var cartItem = await _cartItemRepository
+                .GetCartItemWithCartAsync(cartItemId);
+
+            if (cartItem == null)
+            {
+                return null;
+            }
+
+            if (cartItem.Cart == null || cartItem.Cart.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You are not allowed to modify this cart.");
+            }
+
+            cartItem.Quantity = dto.Quantity;
+
+            await _cartItemRepository.UpdateAsync(cartItem);
+            await _cartItemRepository.SaveChangesAsync();
+
+            var cart = await _cartRepository
+                .GetCartWithItemsAsync(userId);
+
+            if (cart == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<CartDto>(cart);
         }
     }
 }

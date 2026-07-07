@@ -9,5 +9,6 @@ namespace Ecommerce.API.Repositories.Interfaces
 
         Task<IEnumerable<CartItem>> GetCartItemsAsync(int cartId);
         Task DeleteCartItemsAsync(int cartId);
+        Task<CartItem?> GetCartItemWithCartAsync(int cartItemId);
     }
 }

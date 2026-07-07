@@ -52,5 +52,70 @@ namespace Ecommerce.API.Controllers
 
             return Ok(cart);
         }
+
+        [HttpPut("items/{cartItemId}")]
+        public async Task<ActionResult<CartDto>> UpdateCartItem(int cartItemId, UpdateCartItemDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var cart = await _cartService.UpdateCartItemAsync(
+                userId,
+                cartItemId,
+                dto);
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cart);
+        }
+
+        [HttpDelete("items/{cartItemId}")]
+        public async Task<ActionResult<CartDto>> RemoveCartItem(int cartItemId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var cart = await _cartService.RemoveCartItemAsync(
+                userId,
+                cartItemId);
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cart);
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult<CartDto>> ClearCart()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var cart = await _cartService.ClearCartAsync(userId);
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cart);
+        }
     }
 }

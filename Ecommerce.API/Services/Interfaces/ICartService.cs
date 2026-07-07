@@ -8,13 +8,10 @@ namespace Ecommerce.API.Services.Interfaces
 
         Task<CartDto?> GetCartAsync(string userId);
 
-        Task<CartDto> UpdateCartItemAsync(
-            string userId,
-            int cartItemId,
-            UpdateCartItemDto dto);
+        Task<CartDto?> UpdateCartItemAsync(string userId, int cartItemId, UpdateCartItemDto dto);
 
-        Task RemoveCartItemAsync(string userId, int cartItemId);
+        Task<CartDto?> RemoveCartItemAsync(string userId, int cartItemId);
 
-        Task ClearCartAsync(string userId);
+        Task<CartDto?> ClearCartAsync(string userId);
     }
 }

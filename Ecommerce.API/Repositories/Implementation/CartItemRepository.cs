@@ -37,5 +37,11 @@ namespace Ecommerce.API.Repositories.Implementation
                 .Where(ci => ci.CartId == cartId)
                 .ToListAsync();
         }
+        public async Task<CartItem?> GetCartItemWithCartAsync(int cartItemId)
+        {
+            return await _context.CartItems
+                .Include(ci => ci.Cart)
+                .FirstOrDefaultAsync(ci => ci.Id == cartItemId);
+        }
     }
 }
