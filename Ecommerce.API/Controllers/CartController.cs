@@ -3,8 +3,6 @@ using Ecommerce.API.DTOs.Cart;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.API.Controllers
 {
@@ -31,6 +29,26 @@ namespace Ecommerce.API.Controllers
             }
 
             var cart = await _cartService.AddToCartAsync(userId, dto);
+
+            return Ok(cart);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<CartDto>> GetCart()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var cart = await _cartService.GetCartAsync(userId);
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
 
             return Ok(cart);
         }

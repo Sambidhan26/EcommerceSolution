@@ -101,9 +101,16 @@ namespace Ecommerce.API.Services.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<CartDto?> GetCartAsync(string userId)
+        public async Task<CartDto?> GetCartAsync(string userId)
         {
-            throw new NotImplementedException();
+            var cart = await _cartRepository.GetCartWithItemsAsync(userId);
+
+            if (cart == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<CartDto>(cart);
         }
 
         public Task RemoveCartItemAsync(string userId, int cartItemId)
