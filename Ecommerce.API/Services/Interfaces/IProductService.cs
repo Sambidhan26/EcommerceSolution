@@ -1,4 +1,5 @@
-﻿using Ecommerce.API.DTOs.Product;
+using Ecommerce.API.Common;
+using Ecommerce.API.DTOs.Product;
 
 namespace Ecommerce.API.Services.Interfaces
 {
@@ -19,5 +20,7 @@ namespace Ecommerce.API.Services.Interfaces
         Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync();
 
         Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId);
+
+        Task<PagedResult<ProductDto>> GetPagedProductsAsync(PaginationParams paginationParams);
     }
 }

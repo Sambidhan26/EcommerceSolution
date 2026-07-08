@@ -61,5 +61,22 @@ namespace Ecommerce.API.Repositories.Implementation
             return await ProductsWithCategory()
                 .ToListAsync();
         }
+
+        public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedProductsAsync(
+            int pageNumber,
+            int pageSize)
+        {
+            var query = ProductsWithCategory();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(p => p.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

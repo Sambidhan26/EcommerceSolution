@@ -1,4 +1,5 @@
-﻿using Ecommerce.API.DTOs.Product;
+using Ecommerce.API.Common;
+using Ecommerce.API.DTOs.Product;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,16 @@ namespace Ecommerce.API.Controllers
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
         {
             var products = await _productService.GetAllAsync();
+
+            return Ok(products);
+        }
+
+        [HttpGet("paged")]
+        public async Task<ActionResult<PagedResult<ProductDto>>> GetPaged(
+            [FromQuery] PaginationParams paginationParams)
+        {
+            var products = await _productService.GetPagedProductsAsync(paginationParams);
+
             return Ok(products);
         }
 

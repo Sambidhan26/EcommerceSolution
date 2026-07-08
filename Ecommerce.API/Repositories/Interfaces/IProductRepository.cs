@@ -14,7 +14,12 @@ namespace Ecommerce.API.Repositories.Interfaces
         Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId);
 
         Task<Product?> GetProductWithCategoryAsync(int id);
+
         Task<IEnumerable<Product>> GetAllWithCategoryAsync();
+
+        Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedProductsAsync(
+            int pageNumber,
+            int pageSize);
     }
 
 

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Ecommerce.API.Common;
 using Ecommerce.API.Common.Exceptions;
 using Ecommerce.API.DTOs.Product;
 using Ecommerce.API.Models;
@@ -108,6 +109,25 @@ namespace Ecommerce.API.Services.Implementation
             var products = await _productRepository.SearchByNameAsync(keyword);
 
             return _mapper.Map<IEnumerable<ProductDto>>(products);
+        }
+
+        public async Task<PagedResult<ProductDto>> GetPagedProductsAsync(
+            PaginationParams paginationParams)
+        {
+            var (items, totalCount) = await _productRepository.GetPagedProductsAsync(
+                paginationParams.PageNumber,
+                paginationParams.PageSize);
+
+            var products = _mapper.Map<IEnumerable<ProductDto>>(items);
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)paginationParams.PageSize)
+            };
         }
 
         public async Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto)
