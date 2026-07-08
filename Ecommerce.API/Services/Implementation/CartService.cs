@@ -30,20 +30,24 @@ namespace Ecommerce.API.Services.Implementation
         public async Task<CartDto> AddToCartAsync(string userId, AddToCartDto dto)
         {
             // Step 1: Verify Product Exists
-            Console.WriteLine("Step 1");
             var product = await _productRepository.GetByIdAsync(dto.ProductId);
 
             if (product == null)
             {
-                throw new Exception("Product not found.");
+                throw new InvalidOperationException("Product not found.");
             }
 
-            // Step 2: Get User Cart
-            Console.WriteLine("Step 2");
+            // Step 2: Reject invalid stock request immediately
+            if (dto.Quantity > product.StockQuantity)
+            {
+                throw new InvalidOperationException(
+                    $"Insufficient stock for product: {product.Name}");
+            }
+
+            // Step 3: Get User Cart
             var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
-            // Step 3: Create Cart if it doesn't exist
-            Console.WriteLine("Step 3");
+            // Step 4: Create Cart if it doesn't exist
             if (cart == null)
             {
                 cart = new Cart
@@ -53,24 +57,28 @@ namespace Ecommerce.API.Services.Implementation
 
                 await _cartRepository.CreateAsync(cart);
                 await _cartRepository.SaveChangesAsync();
-
-                Console.WriteLine($"Cart created with Id = {cart.Id}");
             }
-            Console.WriteLine("Step 4");
-            // Step 4: Check whether product already exists in cart
+
+            // Step 5: Check whether product already exists in cart
             var cartItem = await _cartItemRepository
                 .GetCartItemAsync(cart.Id, dto.ProductId);
 
             if (cartItem != null)
             {
-                // Product already exists -> Increase quantity
-                cartItem.Quantity += dto.Quantity;
+                var newQuantity = cartItem.Quantity + dto.Quantity;
+
+                if (newQuantity > product.StockQuantity)
+                {
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for product: {product.Name}");
+                }
+
+                cartItem.Quantity = newQuantity;
 
                 await _cartItemRepository.UpdateAsync(cartItem);
             }
             else
             {
-                // Create new CartItem
                 cartItem = new CartItem
                 {
                     CartId = cart.Id,
@@ -84,15 +92,14 @@ namespace Ecommerce.API.Services.Implementation
 
             await _cartItemRepository.SaveChangesAsync();
 
-            // Step 5: Reload cart with products
+            // Step 6: Reload cart with products
             cart = await _cartRepository.GetCartWithItemsAsync(userId);
 
             if (cart == null)
             {
-                throw new Exception("Unable to load cart.");
+                throw new InvalidOperationException("Unable to load cart.");
             }
 
-            // Step 6: Build DTO
             return _mapper.Map<CartDto>(cart);
         }
 
