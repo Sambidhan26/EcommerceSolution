@@ -10,5 +10,9 @@ namespace Ecommerce.API.Repositories.Interfaces
         Task<Order?> GetOrderWithItemsAsync(int orderId);
 
         Task<Order?> GetOrderWithItemsByUserAsync(int orderId, string userId);
+
+        Task<IEnumerable<Order>> GetAllOrdersAsync();
+
+        Task<Order?> GetOrderWithItemsForAdminAsync(int orderId);
     }
 }

@@ -126,5 +126,52 @@ namespace Ecommerce.API.Services.Implementation
 
             return _mapper.Map<OrderDto>(order);
         }
+
+        public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
+        {
+            var orders = await _orderRepository.GetAllOrdersAsync();
+
+            return _mapper.Map<IEnumerable<OrderDto>>(orders);
+        }
+
+        public async Task<OrderDto?> GetOrderForAdminAsync(int orderId)
+        {
+            var order = await _orderRepository
+                .GetOrderWithItemsForAdminAsync(orderId);
+
+            if (order == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<OrderDto>(order);
+        }
+
+        public async Task<OrderDto?> UpdateOrderStatusAsync(
+            int orderId,
+            UpdateOrderStatusDto dto)
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId);
+
+            if (order == null)
+            {
+                return null;
+            }
+
+            order.Status = dto.Status;
+
+            await _orderRepository.UpdateAsync(order);
+            await _orderRepository.SaveChangesAsync();
+
+            var updatedOrder = await _orderRepository
+                .GetOrderWithItemsForAdminAsync(orderId);
+
+            if (updatedOrder == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<OrderDto>(updatedOrder);
+        }
     }
 }
