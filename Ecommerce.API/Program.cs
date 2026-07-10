@@ -135,10 +135,13 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var roleManager =
-        scope.ServiceProvider
-             .GetRequiredService<RoleManager<IdentityRole>>();
+        scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    var userManager =
+        scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
     await DbInitializer.SeedRolesAsync(roleManager);
+    await DbInitializer.SeedAdminUserAsync(userManager);
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

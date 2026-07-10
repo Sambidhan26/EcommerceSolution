@@ -147,11 +147,10 @@ namespace Ecommerce.API.Services.Implementation
             return _mapper.Map<OrderDto>(order);
         }
 
-        public async Task<OrderDto?> UpdateOrderStatusAsync(
-            int orderId,
-            UpdateOrderStatusDto dto)
+        public async Task<OrderDto?> UpdateOrderStatusAsync(int orderId, UpdateOrderStatusDto dto)
         {
-            var order = await _orderRepository.GetByIdAsync(orderId);
+            var order = await _orderRepository
+                .GetOrderWithItemsForAdminAsync(orderId);
 
             if (order == null)
             {

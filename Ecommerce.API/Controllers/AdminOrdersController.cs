@@ -39,9 +39,7 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpPut("{orderId:int}/status")]
-        public async Task<ActionResult<OrderDto>> UpdateOrderStatus(
-            int orderId,
-            UpdateOrderStatusDto dto)
+        public async Task<ActionResult<OrderDto>> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
         {
             var order = await _orderService.UpdateOrderStatusAsync(orderId, dto);
 
