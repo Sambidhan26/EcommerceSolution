@@ -1,3 +1,4 @@
+using Ecommerce.API.Common;
 using Ecommerce.API.DTOs.Order;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -18,15 +19,17 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
+        public async Task<ActionResult<ApiResponse<IEnumerable<OrderDto>>>> GetAllOrders()
         {
             var orders = await _orderService.GetAllOrdersAsync();
 
-            return Ok(orders);
+            return Ok(ApiResponse<IEnumerable<OrderDto>>.SuccessResponse(
+                orders,
+                "Orders retrieved successfully."));
         }
 
         [HttpGet("{orderId:int}")]
-        public async Task<ActionResult<OrderDto>> GetOrder(int orderId)
+        public async Task<ActionResult<ApiResponse<OrderDto>>> GetOrder(int orderId)
         {
             var order = await _orderService.GetOrderForAdminAsync(orderId);
 
@@ -35,11 +38,15 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(order);
+            return Ok(ApiResponse<OrderDto>.SuccessResponse(
+                order,
+                "Order retrieved successfully."));
         }
 
         [HttpPut("{orderId:int}/status")]
-        public async Task<ActionResult<OrderDto>> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
+        public async Task<ActionResult<ApiResponse<OrderDto>>> UpdateOrderStatus(
+            int orderId,
+            [FromBody] UpdateOrderStatusDto dto)
         {
             var order = await _orderService.UpdateOrderStatusAsync(orderId, dto);
 
@@ -48,7 +55,9 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(order);
+            return Ok(ApiResponse<OrderDto>.SuccessResponse(
+                order,
+                "Order status updated successfully."));
         }
     }
 }

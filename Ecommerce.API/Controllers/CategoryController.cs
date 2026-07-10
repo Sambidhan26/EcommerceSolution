@@ -1,4 +1,5 @@
-﻿using Ecommerce.API.DTOs.Category;
+using Ecommerce.API.Common;
+using Ecommerce.API.DTOs.Category;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,9 @@ namespace Ecommerce.API.Controllers
         {
             var categories = await _categoryService.GetAllAsync();
 
-            return Ok(categories);
+            return Ok(ApiResponse<IEnumerable<CategoryDto>>.SuccessResponse(
+                categories,
+                "Categories retrieved successfully."));
         }
 
         [HttpGet("{id:int}")]
@@ -30,47 +33,59 @@ namespace Ecommerce.API.Controllers
             var category = await _categoryService.GetByIdAsync(id);
 
             if (category == null)
+            {
                 return NotFound();
+            }
 
-            return Ok(category);
+            return Ok(ApiResponse<CategoryDto>.SuccessResponse(
+                category,
+                "Category retrieved successfully."));
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(CreateCategoryDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
         {
             var category = await _categoryService.CreateAsync(dto);
 
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = category.Id },
-                category);
+                ApiResponse<CategoryDto>.SuccessResponse(
+                    category,
+                    "Category created successfully."));
         }
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
         {
-            var updated =
-                await _categoryService.UpdateAsync(id, dto);
+            var updated = await _categoryService.UpdateAsync(id, dto);
 
             if (!updated)
+            {
                 return NotFound();
+            }
 
-            return NoContent();
+            return Ok(ApiResponse<string?>.SuccessResponse(
+                null,
+                "Category updated successfully."));
         }
 
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted =
-                await _categoryService.DeleteAsync(id);
+            var deleted = await _categoryService.DeleteAsync(id);
 
             if (!deleted)
+            {
                 return NotFound();
+            }
 
-            return NoContent();
+            return Ok(ApiResponse<string?>.SuccessResponse(
+                null,
+                "Category deleted successfully."));
         }
     }
 }

@@ -1,8 +1,9 @@
-﻿using Ecommerce.API.DTOs.Order;
+using System.Security.Claims;
+using Ecommerce.API.Common;
+using Ecommerce.API.DTOs.Order;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Ecommerce.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpPost("checkout")]
-        public async Task<ActionResult<OrderDto>> Checkout()
+        public async Task<ActionResult<ApiResponse<OrderDto>>> Checkout()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -30,11 +31,13 @@ namespace Ecommerce.API.Controllers
 
             var order = await _orderService.CheckoutAsync(userId);
 
-            return Ok(order);
+            return Ok(ApiResponse<OrderDto>.SuccessResponse(
+                order,
+                "Checkout completed successfully."));
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrders()
+        public async Task<ActionResult<ApiResponse<IEnumerable<OrderDto>>>> GetMyOrders()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -45,11 +48,13 @@ namespace Ecommerce.API.Controllers
 
             var orders = await _orderService.GetMyOrdersAsync(userId);
 
-            return Ok(orders);
+            return Ok(ApiResponse<IEnumerable<OrderDto>>.SuccessResponse(
+                orders,
+                "Orders retrieved successfully."));
         }
 
         [HttpGet("{orderId}")]
-        public async Task<ActionResult<OrderDto>> GetOrder(int orderId)
+        public async Task<ActionResult<ApiResponse<OrderDto>>> GetOrder(int orderId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -65,7 +70,9 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(order);
+            return Ok(ApiResponse<OrderDto>.SuccessResponse(
+                order,
+                "Order retrieved successfully."));
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Ecommerce.API.Common;
 using Ecommerce.API.DTOs.Cart;
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +20,7 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CartDto>> AddToCart(AddToCartDto dto)
+        public async Task<ActionResult<ApiResponse<CartDto>>> AddToCart([FromBody] AddToCartDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -30,11 +31,13 @@ namespace Ecommerce.API.Controllers
 
             var cart = await _cartService.AddToCartAsync(userId, dto);
 
-            return Ok(cart);
+            return Ok(ApiResponse<CartDto>.SuccessResponse(
+                cart,
+                "Product added to cart successfully."));
         }
 
         [HttpGet]
-        public async Task<ActionResult<CartDto>> GetCart()
+        public async Task<ActionResult<ApiResponse<CartDto>>> GetCart()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -47,19 +50,23 @@ namespace Ecommerce.API.Controllers
 
             if (cart == null)
             {
-                return Ok(new CartDto
+                cart = new CartDto
                 {
                     Items = new List<CartItemDto>(),
                     TotalPrice = 0,
                     TotalItems = 0
-                });
+                };
             }
 
-            return Ok(cart);
+            return Ok(ApiResponse<CartDto>.SuccessResponse(
+                cart,
+                "Cart retrieved successfully."));
         }
 
         [HttpPut("items/{cartItemId}")]
-        public async Task<ActionResult<CartDto>> UpdateCartItem(int cartItemId, UpdateCartItemDto dto)
+        public async Task<ActionResult<ApiResponse<CartDto>>> UpdateCartItem(
+            int cartItemId,
+            [FromBody] UpdateCartItemDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -78,11 +85,13 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(cart);
+            return Ok(ApiResponse<CartDto>.SuccessResponse(
+                cart,
+                "Cart item updated successfully."));
         }
 
         [HttpDelete("items/{cartItemId}")]
-        public async Task<ActionResult<CartDto>> RemoveCartItem(int cartItemId)
+        public async Task<ActionResult<ApiResponse<CartDto>>> RemoveCartItem(int cartItemId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -100,11 +109,13 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(cart);
+            return Ok(ApiResponse<CartDto>.SuccessResponse(
+                cart,
+                "Cart item removed successfully."));
         }
 
         [HttpDelete]
-        public async Task<ActionResult<CartDto>> ClearCart()
+        public async Task<ActionResult<ApiResponse<CartDto>>> ClearCart()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -120,7 +131,9 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(cart);
+            return Ok(ApiResponse<CartDto>.SuccessResponse(
+                cart,
+                "Cart cleared successfully."));
         }
     }
 }
