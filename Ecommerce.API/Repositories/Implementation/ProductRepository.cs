@@ -1,4 +1,5 @@
-﻿using Ecommerce.API.Data;
+using Ecommerce.API.Common;
+using Ecommerce.API.Data;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Implementation;
@@ -74,6 +75,58 @@ namespace Ecommerce.API.Repositories.Implementation
                 .OrderByDescending(p => p.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        public async Task<(IEnumerable<Product> Items, int TotalCount)> GetFilteredProductsAsync(
+            ProductFilterParams filterParams)
+        {
+            var query = ProductsWithCategory();
+
+            if (!string.IsNullOrWhiteSpace(filterParams.Search))
+            {
+                query = query.Where(p =>
+                    p.Name.Contains(filterParams.Search) ||
+                    p.Description.Contains(filterParams.Search));
+            }
+
+            if (filterParams.CategoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == filterParams.CategoryId.Value);
+            }
+
+            if (filterParams.IsFeatured.HasValue)
+            {
+                query = query.Where(p => p.IsFeatured == filterParams.IsFeatured.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var sortBy = filterParams.SortBy?.ToLower();
+            var sortOrder = filterParams.SortOrder?.ToLower();
+            var ascending = sortOrder == "asc";
+
+            query = sortBy switch
+            {
+                "price" => ascending
+                    ? query.OrderBy(p => p.Price)
+                    : query.OrderByDescending(p => p.Price),
+                "name" => ascending
+                    ? query.OrderBy(p => p.Name)
+                    : query.OrderByDescending(p => p.Name),
+                "date" => ascending
+                    ? query.OrderBy(p => p.CreatedAt)
+                    : query.OrderByDescending(p => p.CreatedAt),
+                _ => ascending
+                    ? query.OrderBy(p => p.Id)
+                    : query.OrderByDescending(p => p.Id)
+            };
+
+            var items = await query
+                .Skip((filterParams.PageNumber - 1) * filterParams.PageSize)
+                .Take(filterParams.PageSize)
                 .ToListAsync();
 
             return (items, totalCount);

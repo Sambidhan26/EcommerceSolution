@@ -130,6 +130,23 @@ namespace Ecommerce.API.Services.Implementation
             };
         }
 
+        public async Task<PagedResult<ProductDto>> GetFilteredProductsAsync(
+            ProductFilterParams filterParams)
+        {
+            var (items, totalCount) = await _productRepository.GetFilteredProductsAsync(filterParams);
+
+            var products = _mapper.Map<IEnumerable<ProductDto>>(items);
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products,
+                PageNumber = filterParams.PageNumber,
+                PageSize = filterParams.PageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)filterParams.PageSize)
+            };
+        }
+
         public async Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto)
         {
             var product = await _productRepository.GetByIdAsync(id);

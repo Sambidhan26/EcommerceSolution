@@ -34,6 +34,15 @@ namespace Ecommerce.API.Controllers
             return Ok(products);
         }
 
+        [HttpGet("filter")]
+        public async Task<ActionResult<PagedResult<ProductDto>>> GetFiltered(
+            [FromQuery] ProductFilterParams filterParams)
+        {
+            var result = await _productService.GetFilteredProductsAsync(filterParams);
+
+            return Ok(result);
+        }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ProductDto>> GetById(int id)
         {

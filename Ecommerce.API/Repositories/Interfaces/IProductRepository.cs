@@ -1,4 +1,5 @@
-﻿using Ecommerce.API.Models;
+using Ecommerce.API.Common;
+using Ecommerce.API.Models;
 using Ecommerce.API.Services.Interfaces;
 
 namespace Ecommerce.API.Repositories.Interfaces
@@ -20,7 +21,8 @@ namespace Ecommerce.API.Repositories.Interfaces
         Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedProductsAsync(
             int pageNumber,
             int pageSize);
+
+        Task<(IEnumerable<Product> Items, int TotalCount)> GetFilteredProductsAsync(
+            ProductFilterParams filterParams);
     }
-
-
 }

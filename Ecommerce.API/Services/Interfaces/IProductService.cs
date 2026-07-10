@@ -22,5 +22,7 @@ namespace Ecommerce.API.Services.Interfaces
         Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId);
 
         Task<PagedResult<ProductDto>> GetPagedProductsAsync(PaginationParams paginationParams);
+
+        Task<PagedResult<ProductDto>> GetFilteredProductsAsync(ProductFilterParams filterParams);
     }
 }
