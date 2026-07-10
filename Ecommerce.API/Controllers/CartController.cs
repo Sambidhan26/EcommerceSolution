@@ -63,7 +63,7 @@ namespace Ecommerce.API.Controllers
                 "Cart retrieved successfully."));
         }
 
-        [HttpPut("items/{cartItemId}")]
+        [HttpPut("items/{cartItemId:int}")]
         public async Task<ActionResult<ApiResponse<CartDto>>> UpdateCartItem(
             int cartItemId,
             [FromBody] UpdateCartItemDto dto)
@@ -90,7 +90,7 @@ namespace Ecommerce.API.Controllers
                 "Cart item updated successfully."));
         }
 
-        [HttpDelete("items/{cartItemId}")]
+        [HttpDelete("items/{cartItemId:int}")]
         public async Task<ActionResult<ApiResponse<CartDto>>> RemoveCartItem(int cartItemId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -100,9 +100,7 @@ namespace Ecommerce.API.Controllers
                 return Unauthorized();
             }
 
-            var cart = await _cartService.RemoveCartItemAsync(
-                userId,
-                cartItemId);
+            var cart = await _cartService.RemoveCartItemAsync(userId, cartItemId);
 
             if (cart == null)
             {
@@ -128,7 +126,12 @@ namespace Ecommerce.API.Controllers
 
             if (cart == null)
             {
-                return NotFound();
+                cart = new CartDto
+                {
+                    Items = new List<CartItemDto>(),
+                    TotalPrice = 0,
+                    TotalItems = 0
+                };
             }
 
             return Ok(ApiResponse<CartDto>.SuccessResponse(

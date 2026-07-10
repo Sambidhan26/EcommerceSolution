@@ -53,7 +53,7 @@ namespace Ecommerce.API.Controllers
                 "Orders retrieved successfully."));
         }
 
-        [HttpGet("{orderId}")]
+        [HttpGet("{orderId:int}")]
         public async Task<ActionResult<ApiResponse<OrderDto>>> GetOrder(int orderId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
