@@ -81,15 +81,17 @@ namespace Ecommerce.API.Repositories.Implementation
         }
 
         public async Task<(IEnumerable<Product> Items, int TotalCount)> GetFilteredProductsAsync(
-            ProductFilterParams filterParams)
+     ProductFilterParams filterParams)
         {
             var query = ProductsWithCategory();
 
             if (!string.IsNullOrWhiteSpace(filterParams.Search))
             {
+                var search = filterParams.Search.Trim();
+
                 query = query.Where(p =>
-                    p.Name.Contains(filterParams.Search) ||
-                    p.Description.Contains(filterParams.Search));
+                    p.Name.Contains(search) ||
+                    (p.Description != null && p.Description.Contains(search)));
             }
 
             if (filterParams.CategoryId.HasValue)
@@ -104,24 +106,24 @@ namespace Ecommerce.API.Repositories.Implementation
 
             var totalCount = await query.CountAsync();
 
-            var sortBy = filterParams.SortBy?.ToLower();
-            var sortOrder = filterParams.SortOrder?.ToLower();
-            var ascending = sortOrder == "asc";
+            var sortBy = filterParams.SortBy?.Trim().ToLower();
+            var sortOrder = filterParams.SortOrder?.Trim().ToLower();
 
             query = sortBy switch
             {
-                "price" => ascending
+                "price" => sortOrder == "asc"
                     ? query.OrderBy(p => p.Price)
                     : query.OrderByDescending(p => p.Price),
-                "name" => ascending
+
+                "name" => sortOrder == "asc"
                     ? query.OrderBy(p => p.Name)
                     : query.OrderByDescending(p => p.Name),
-                "date" => ascending
+
+                "date" => sortOrder == "asc"
                     ? query.OrderBy(p => p.CreatedAt)
                     : query.OrderByDescending(p => p.CreatedAt),
-                _ => ascending
-                    ? query.OrderBy(p => p.Id)
-                    : query.OrderByDescending(p => p.Id)
+
+                _ => query.OrderByDescending(p => p.Id)
             };
 
             var items = await query
