@@ -1,5 +1,6 @@
 using Ecommerce.API.Common;
 using Ecommerce.API.DTOs.Product;
+using Microsoft.AspNetCore.Http;
 
 namespace Ecommerce.API.Services.Interfaces
 {
@@ -24,5 +25,7 @@ namespace Ecommerce.API.Services.Interfaces
         Task<PagedResult<ProductDto>> GetPagedProductsAsync(PaginationParams paginationParams);
 
         Task<PagedResult<ProductDto>> GetFilteredProductsAsync(ProductFilterParams filterParams);
+
+        Task<ProductDto?> UploadProductImageAsync(int id, IFormFile file);
     }
 }

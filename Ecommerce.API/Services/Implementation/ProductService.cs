@@ -5,6 +5,8 @@ using Ecommerce.API.DTOs.Product;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace Ecommerce.API.Services.Implementation
 {
@@ -13,15 +15,18 @@ namespace Ecommerce.API.Services.Implementation
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _environment;
 
         public ProductService(
             IProductRepository productRepository,
             ICategoryRepository categoryRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IWebHostEnvironment environment)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _environment = environment;
         }
 
         private string GenerateSku()
@@ -164,6 +169,57 @@ namespace Ecommerce.API.Services.Implementation
             }
 
             _mapper.Map(dto, product);
+
+            await _productRepository.UpdateAsync(product);
+            await _productRepository.SaveChangesAsync();
+
+            var updatedProduct = await _productRepository.GetProductWithCategoryAsync(id);
+
+            return _mapper.Map<ProductDto>(updatedProduct);
+        }
+
+        public async Task<ProductDto?> UploadProductImageAsync(int id, IFormFile file)
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return null;
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                throw new BadRequestException("Image file is required.");
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                throw new BadRequestException("Only .jpg, .jpeg, .png, and .webp image files are allowed.");
+            }
+
+            var webRootPath = _environment.WebRootPath;
+
+            if (string.IsNullOrWhiteSpace(webRootPath))
+            {
+                webRootPath = Path.Combine(_environment.ContentRootPath, "wwwroot");
+            }
+
+            var uploadPath = Path.Combine(webRootPath, "images", "products");
+
+            Directory.CreateDirectory(uploadPath);
+
+            var fileName = $"{product.Id}-{Guid.NewGuid():N}{extension}";
+            var filePath = Path.Combine(uploadPath, fileName);
+
+            await using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            product.ImageUrl = $"/images/products/{fileName}";
 
             await _productRepository.UpdateAsync(product);
             await _productRepository.SaveChangesAsync();

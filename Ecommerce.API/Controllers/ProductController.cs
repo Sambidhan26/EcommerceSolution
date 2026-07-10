@@ -94,6 +94,24 @@ namespace Ecommerce.API.Controllers
                 "Product updated successfully."));
         }
 
+        [HttpPost("{id:int}/image")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<ProductDto>>> UploadImage(
+            int id,
+            [FromForm] IFormFile file)
+        {
+            var product = await _productService.UploadProductImageAsync(id, file);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(
+                product,
+                "Product image uploaded successfully."));
+        }
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
