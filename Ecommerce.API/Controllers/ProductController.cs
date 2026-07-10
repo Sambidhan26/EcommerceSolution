@@ -96,11 +96,12 @@ namespace Ecommerce.API.Controllers
 
         [HttpPost("{id:int}/image")]
         [Authorize(Roles = "Admin")]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<ApiResponse<ProductDto>>> UploadImage(
-            int id,
-            [FromForm] IFormFile file)
+    int id,
+    [FromForm] UploadProductImageDto dto)
         {
-            var product = await _productService.UploadProductImageAsync(id, file);
+            var product = await _productService.UploadProductImageAsync(id, dto.File);
 
             if (product == null)
             {
