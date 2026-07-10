@@ -66,7 +66,7 @@ namespace Ecommerce.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<ProductDto>>> Create(CreateProductDto dto)
+        public async Task<ActionResult<ApiResponse<ProductDto>>> Create([FromBody] CreateProductDto dto)
         {
             var product = await _productService.CreateAsync(dto);
 
@@ -80,7 +80,7 @@ namespace Ecommerce.API.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse<ProductDto>>> Update(int id, UpdateProductDto dto)
+        public async Task<ActionResult<ApiResponse<ProductDto>>> Update(int id, [FromBody] UpdateProductDto dto)
         {
             var product = await _productService.UpdateAsync(id, dto);
 
