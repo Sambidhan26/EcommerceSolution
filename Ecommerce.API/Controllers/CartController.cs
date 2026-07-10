@@ -47,7 +47,12 @@ namespace Ecommerce.API.Controllers
 
             if (cart == null)
             {
-                return NotFound();
+                return Ok(new CartDto
+                {
+                    Items = new List<CartItemDto>(),
+                    TotalPrice = 0,
+                    TotalItems = 0
+                });
             }
 
             return Ok(cart);
