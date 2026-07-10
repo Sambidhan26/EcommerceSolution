@@ -18,33 +18,39 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
+        public async Task<ActionResult<ApiResponse<IEnumerable<ProductDto>>>> GetAll()
         {
             var products = await _productService.GetAllAsync();
 
-            return Ok(products);
+            return Ok(ApiResponse<IEnumerable<ProductDto>>.SuccessResponse(
+                products,
+                "Products retrieved successfully."));
         }
 
         [HttpGet("paged")]
-        public async Task<ActionResult<PagedResult<ProductDto>>> GetPaged(
+        public async Task<ActionResult<ApiResponse<PagedResult<ProductDto>>>> GetPaged(
             [FromQuery] PaginationParams paginationParams)
         {
             var products = await _productService.GetPagedProductsAsync(paginationParams);
 
-            return Ok(products);
+            return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(
+                products,
+                "Products retrieved successfully."));
         }
 
         [HttpGet("filter")]
-        public async Task<ActionResult<PagedResult<ProductDto>>> GetFiltered(
+        public async Task<ActionResult<ApiResponse<PagedResult<ProductDto>>>> GetFiltered(
             [FromQuery] ProductFilterParams filterParams)
         {
             var result = await _productService.GetFilteredProductsAsync(filterParams);
 
-            return Ok(result);
+            return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(
+                result,
+                "Products retrieved successfully."));
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ProductDto>> GetById(int id)
+        public async Task<ActionResult<ApiResponse<ProductDto>>> GetById(int id)
         {
             var product = await _productService.GetByIdAsync(id);
 
@@ -53,24 +59,28 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(
+                product,
+                "Product retrieved successfully."));
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ProductDto>> Create(CreateProductDto dto)
+        public async Task<ActionResult<ApiResponse<ProductDto>>> Create(CreateProductDto dto)
         {
             var product = await _productService.CreateAsync(dto);
 
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = product.Id },
-                product);
+                ApiResponse<ProductDto>.SuccessResponse(
+                    product,
+                    "Product created successfully."));
         }
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ProductDto>> Update(int id, UpdateProductDto dto)
+        public async Task<ActionResult<ApiResponse<ProductDto>>> Update(int id, UpdateProductDto dto)
         {
             var product = await _productService.UpdateAsync(id, dto);
 
@@ -79,7 +89,9 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
             }
 
-            return Ok(product);
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(
+                product,
+                "Product updated successfully."));
         }
 
         [HttpDelete("{id:int}")]
