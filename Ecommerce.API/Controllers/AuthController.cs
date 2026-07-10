@@ -36,5 +36,27 @@ namespace Ecommerce.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var result = await _authService.RefreshTokenAsync(request);
+
+            if (!result.IsSuccess)
+                return Unauthorized(result);
+
+            return Ok(result);
+        }
+
+        [HttpPost("revoke-token")]
+        public async Task<IActionResult> RevokeToken(RevokeTokenRequestDto request)
+        {
+            var result = await _authService.RevokeTokenAsync(request);
+
+            if (!result)
+                return BadRequest();
+
+            return Ok();
+        }
     }
 }
