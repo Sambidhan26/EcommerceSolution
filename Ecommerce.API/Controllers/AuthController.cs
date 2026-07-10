@@ -38,7 +38,7 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
         {
             var result = await _authService.RefreshTokenAsync(request);
 
@@ -49,7 +49,7 @@ namespace Ecommerce.API.Controllers
         }
 
         [HttpPost("revoke-token")]
-        public async Task<IActionResult> RevokeToken(RevokeTokenRequestDto request)
+        public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenRequestDto request)
         {
             var result = await _authService.RevokeTokenAsync(request);
 

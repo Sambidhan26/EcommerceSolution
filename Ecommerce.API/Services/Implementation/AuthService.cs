@@ -201,7 +201,8 @@ namespace Ecommerce.API.Services.Implementation
                 Token = _jwtTokenService.GenerateRefreshToken(),
                 UserId = userId,
                 ExpiresAt = DateTime.UtcNow.AddDays(7),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsRevoked = false
             };
         }
 
