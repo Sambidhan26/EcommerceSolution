@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Ecommerce.API.Common.Exceptions;
 using Ecommerce.API.Data;
 using Ecommerce.API.DTOs.Order;
 using Ecommerce.API.Models;
@@ -40,19 +41,19 @@ namespace Ecommerce.API.Services.Implementation
 
                 if (cart == null || !cart.CartItems.Any())
                 {
-                    throw new InvalidOperationException("Cart is empty.");
+                    throw new BadRequestException("Cart is empty.");
                 }
 
                 foreach (var cartItem in cart.CartItems)
                 {
                     if (cartItem.Product == null)
                     {
-                        throw new InvalidOperationException("Product not found.");
+                        throw new NotFoundException("Product not found.");
                     }
 
                     if (cartItem.Product.StockQuantity < cartItem.Quantity)
                     {
-                        throw new InvalidOperationException(
+                        throw new BadRequestException(
                             $"Insufficient stock for product: {cartItem.Product.Name}");
                     }
                 }
@@ -94,7 +95,7 @@ namespace Ecommerce.API.Services.Implementation
 
                 if (savedOrder == null)
                 {
-                    throw new InvalidOperationException("Order could not be loaded.");
+                    throw new BadRequestException("Order could not be loaded.");
                 }
 
                 return _mapper.Map<OrderDto>(savedOrder);

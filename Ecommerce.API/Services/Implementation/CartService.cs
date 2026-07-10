@@ -1,4 +1,5 @@
 using AutoMapper;
+using Ecommerce.API.Common.Exceptions;
 using Ecommerce.API.DTOs.Cart;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Implementation;
@@ -34,13 +35,13 @@ namespace Ecommerce.API.Services.Implementation
 
             if (product == null)
             {
-                throw new InvalidOperationException("Product not found.");
+                throw new NotFoundException("Product not found.");
             }
 
             // Step 2: Reject invalid stock request immediately
             if (dto.Quantity > product.StockQuantity)
             {
-                throw new InvalidOperationException(
+                throw new BadRequestException(
                     $"Insufficient stock for product: {product.Name}");
             }
 
@@ -69,7 +70,7 @@ namespace Ecommerce.API.Services.Implementation
 
                 if (newQuantity > product.StockQuantity)
                 {
-                    throw new InvalidOperationException(
+                    throw new BadRequestException(
                         $"Insufficient stock for product: {product.Name}");
                 }
 
@@ -97,7 +98,7 @@ namespace Ecommerce.API.Services.Implementation
 
             if (cart == null)
             {
-                throw new InvalidOperationException("Unable to load cart.");
+                throw new BadRequestException("Unable to load cart.");
             }
 
             return _mapper.Map<CartDto>(cart);
