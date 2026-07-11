@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Ecommerce.API/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=EcommerceDockerDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
+      Jwt__Key: ThisIsMySuperSecretKeyForJwtAuthentication12345_Development_Docker
+      Jwt__Issuer: Ecommerce.API
+      Jwt__Audience: Ecommerce.Client
+      Jwt__DurationInMinutes: 60
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: YourStrong@Passw0rd
