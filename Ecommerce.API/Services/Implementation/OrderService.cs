@@ -158,6 +158,17 @@ namespace Ecommerce.API.Services.Implementation
                 return null;
             }
 
+            if (order.Status == dto.Status)
+            {
+                throw new BadRequestException("Order already has this status.");
+            }
+
+            if (!IsValidStatusTransition(order.Status, dto.Status))
+            {
+                throw new ConflictException(
+                    $"Cannot change order status from {order.Status} to {dto.Status}.");
+            }
+
             order.Status = dto.Status;
 
             await _orderRepository.UpdateAsync(order);
@@ -172,6 +183,21 @@ namespace Ecommerce.API.Services.Implementation
             }
 
             return _mapper.Map<OrderDto>(updatedOrder);
+        }
+
+        private static bool IsValidStatusTransition(
+            OrderStatus currentStatus,
+            OrderStatus newStatus)
+        {
+            return currentStatus switch
+            {
+                OrderStatus.Pending => newStatus is OrderStatus.Processing or OrderStatus.Cancelled,
+                OrderStatus.Processing => newStatus is OrderStatus.Shipped or OrderStatus.Cancelled,
+                OrderStatus.Shipped => newStatus == OrderStatus.Delivered,
+                OrderStatus.Delivered => false,
+                OrderStatus.Cancelled => false,
+                _ => false
+            };
         }
     }
 }
