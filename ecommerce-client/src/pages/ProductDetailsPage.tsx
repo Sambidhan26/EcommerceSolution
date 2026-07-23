@@ -16,22 +16,43 @@ export function ProductDetailsPage() {
 
   useEffect(() => {
     let isActive = true
-    if (!isValidProductId) return () => { isActive = false }
+
+    if (!isValidProductId) {
+      return () => {
+        isActive = false
+      }
+    }
 
     productApi.getById(productId)
-      .then((response) => { if (isActive) setProduct(response.data) })
-      .catch(() => { if (isActive) setError('Unable to load this product.') })
-      .finally(() => { if (isActive) setIsLoading(false) })
-    return () => { isActive = false }
+      .then((productResult) => {
+        if (isActive) setProduct(productResult ?? null)
+      })
+      .catch(() => {
+        if (isActive) setError('Unable to load this product.')
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
+      })
+
+    return () => {
+      isActive = false
+    }
   }, [isValidProductId, productId])
 
   return (
     <section className="page">
       <Link className="back-link" to="/products">← Back to products</Link>
+
       {isLoading && <LoadingMessage />}
       {!isValidProductId && <ErrorMessage message="This product link is invalid." />}
       {error && <ErrorMessage message={error} />}
-      {!isLoading && !error && product && (
+      {isValidProductId && !isLoading && !error && product === null && (
+        <div className="empty-state">
+          <h1>Product not found</h1>
+          <p className="muted">This product may no longer be available.</p>
+        </div>
+      )}
+      {!isLoading && !error && product !== null && (
         <article className="product-details">
           <div className="product-details__media">
             {product.imageUrl ? (
@@ -49,7 +70,9 @@ export function ProductDetailsPage() {
             </p>
             {product.stockQuantity !== undefined && (
               <p className={product.stockQuantity > 0 ? 'stock stock--available' : 'stock'}>
-                {product.stockQuantity > 0 ? `${product.stockQuantity} available` : 'Currently out of stock'}
+                {product.stockQuantity > 0
+                  ? `${product.stockQuantity} available`
+                  : 'Currently out of stock'}
               </p>
             )}
           </div>

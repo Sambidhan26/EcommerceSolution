@@ -13,12 +13,24 @@ export function HomePage() {
 
   useEffect(() => {
     let isActive = true
+
     productApi.getFeatured()
-      .then((response) => { if (isActive) setProducts(response.data) })
-      .catch(() => { if (isActive) setError('Unable to load featured products.') })
-      .finally(() => { if (isActive) setIsLoading(false) })
-    return () => { isActive = false }
+      .then((featuredProducts) => {
+        if (isActive) setProducts(featuredProducts)
+      })
+      .catch(() => {
+        if (isActive) setError('Unable to load featured products.')
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
+      })
+
+    return () => {
+      isActive = false
+    }
   }, [])
+
+  const featuredProducts = Array.isArray(products) ? products : []
 
   return (
     <>
@@ -30,6 +42,7 @@ export function HomePage() {
           <Link className="primary-link" to="/products">Browse all products</Link>
         </div>
       </section>
+
       <section className="page featured-section">
         <div className="section-heading">
           <div>
@@ -38,17 +51,20 @@ export function HomePage() {
           </div>
           <Link className="text-link" to="/products">View all</Link>
         </div>
+
         {isLoading && <LoadingMessage />}
         {error && <ErrorMessage message={error} />}
-        {!isLoading && !error && products.length === 0 && (
+        {!isLoading && !error && featuredProducts.length === 0 && (
           <div className="empty-state">
             <h3>No featured products yet</h3>
             <p className="muted">Check back soon or explore the full catalog.</p>
           </div>
         )}
-        {!isLoading && !error && products.length > 0 && (
+        {!isLoading && !error && featuredProducts.length > 0 && (
           <div className="product-grid">
-            {products.map((product) => <ProductCard key={product.id} product={product} />)}
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
         )}
       </section>

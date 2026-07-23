@@ -11,27 +11,43 @@ export function CategoriesPage() {
 
   useEffect(() => {
     let isActive = true
+
     categoryApi.getAll()
-      .then((response) => { if (isActive) setCategories(response.data) })
-      .catch(() => { if (isActive) setError('Unable to load categories.') })
-      .finally(() => { if (isActive) setIsLoading(false) })
-    return () => { isActive = false }
+      .then((categoryResults) => {
+        if (isActive) setCategories(categoryResults)
+      })
+      .catch(() => {
+        if (isActive) setError('Unable to load categories.')
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
+      })
+
+    return () => {
+      isActive = false
+    }
   }, [])
+
+  const safeCategories = Array.isArray(categories) ? categories : []
 
   return (
     <section className="page">
       <h1>Categories</h1>
       {isLoading && <LoadingMessage />}
       {error && <ErrorMessage message={error} />}
-      {!isLoading && !error && categories.length === 0 && <p className="muted">No categories found.</p>}
-      <ul className="card-grid">
-        {categories.map((category) => (
-          <li className="card" key={category.id}>
-            <h2>{category.name}</h2>
-            {category.description && <p>{category.description}</p>}
-          </li>
-        ))}
-      </ul>
+      {!isLoading && !error && safeCategories.length === 0 && (
+        <p className="muted">No categories found.</p>
+      )}
+      {!isLoading && !error && safeCategories.length > 0 && (
+        <ul className="card-grid">
+          {safeCategories.map((category) => (
+            <li className="card" key={category.id}>
+              <h2>{category.name}</h2>
+              {category.description && <p>{category.description}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

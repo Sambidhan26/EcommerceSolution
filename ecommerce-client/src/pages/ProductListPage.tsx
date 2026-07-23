@@ -7,6 +7,7 @@ import { ProductCard } from '../components/ProductCard'
 import type { Category, PagedResult, Product } from '../types'
 
 const PAGE_SIZE = 8
+
 type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'
 
 const sortParams: Record<SortOption, { sortBy: string; sortDescending: boolean }> = {
@@ -30,10 +31,18 @@ export function ProductListPage() {
 
   useEffect(() => {
     let isActive = true
+
     categoryApi.getAll()
-      .then((response) => { if (isActive) setCategories(response.data) })
-      .catch(() => { if (isActive) setCategoryError('Categories are unavailable right now.') })
-    return () => { isActive = false }
+      .then((categoryResults) => {
+        if (isActive) setCategories(categoryResults)
+      })
+      .catch(() => {
+        if (isActive) setCategoryError('Categories are unavailable right now.')
+      })
+
+    return () => {
+      isActive = false
+    }
   }, [])
 
   useEffect(() => {
@@ -46,22 +55,30 @@ export function ProductListPage() {
       searchTerm: searchTerm || undefined,
       ...sortParams[sort],
     })
-      .then((response) => { if (isActive) setResult(response.data) })
+      .then((pagedResult) => {
+        if (isActive) setResult(pagedResult)
+      })
       .catch(() => {
         if (isActive) {
           setResult(null)
           setError('Unable to load products. Please try again.')
         }
       })
-      .finally(() => { if (isActive) setIsLoading(false) })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
+      })
 
-    return () => { isActive = false }
+    return () => {
+      isActive = false
+    }
   }, [categoryId, pageNumber, searchTerm, sort])
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextSearchTerm = searchInput.trim()
+
     if (nextSearchTerm === searchTerm && pageNumber === 1) return
+
     setIsLoading(true)
     setError('')
     setPageNumber(1)
@@ -80,7 +97,8 @@ export function ProductListPage() {
     setPageNumber(nextPage)
   }
 
-  const products = result?.items ?? []
+  const safeCategories = Array.isArray(categories) ? categories : []
+  const products = Array.isArray(result?.items) ? result.items : []
   const totalPages = result?.totalPages ?? 0
 
   return (
@@ -98,30 +116,45 @@ export function ProductListPage() {
         <form className="search-form" onSubmit={handleSearch}>
           <label htmlFor="product-search">Search products</label>
           <div className="search-form__controls">
-            <input id="product-search" type="search" value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by name" />
+            <input
+              id="product-search"
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search by name"
+            />
             <button type="submit">Search</button>
           </div>
         </form>
+
         <div className="filter-field">
           <label htmlFor="category-filter">Category</label>
-          <select id="category-filter" value={categoryId} onChange={(event) => {
-            beginFilterChange()
-            setCategoryId(event.target.value)
-          }}>
+          <select
+            id="category-filter"
+            value={categoryId}
+            onChange={(event) => {
+              beginFilterChange()
+              setCategoryId(event.target.value)
+            }}
+          >
             <option value="">All categories</option>
-            {categories.map((category) => (
+            {safeCategories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>
             ))}
           </select>
           {categoryError && <span className="field-note">{categoryError}</span>}
         </div>
+
         <div className="filter-field">
           <label htmlFor="sort-products">Sort by</label>
-          <select id="sort-products" value={sort} onChange={(event) => {
-            beginFilterChange()
-            setSort(event.target.value as SortOption)
-          }}>
+          <select
+            id="sort-products"
+            value={sort}
+            onChange={(event) => {
+              beginFilterChange()
+              setSort(event.target.value as SortOption)
+            }}
+          >
             <option value="name-asc">Name: A–Z</option>
             <option value="name-desc">Name: Z–A</option>
             <option value="price-asc">Price: Low to high</option>
@@ -140,16 +173,28 @@ export function ProductListPage() {
       )}
       {!isLoading && !error && products.length > 0 && (
         <div className="product-grid">
-          {products.map((product) => <ProductCard key={product.id} product={product} />)}
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
       )}
       {!isLoading && !error && totalPages > 1 && (
         <nav className="pagination" aria-label="Product pages">
-          <button type="button" disabled={pageNumber <= 1}
-            onClick={() => changePage(pageNumber - 1)}>Previous</button>
+          <button
+            type="button"
+            disabled={pageNumber <= 1}
+            onClick={() => changePage(pageNumber - 1)}
+          >
+            Previous
+          </button>
           <span>Page {result?.pageNumber ?? pageNumber} of {totalPages}</span>
-          <button type="button" disabled={pageNumber >= totalPages}
-            onClick={() => changePage(pageNumber + 1)}>Next</button>
+          <button
+            type="button"
+            disabled={pageNumber >= totalPages}
+            onClick={() => changePage(pageNumber + 1)}
+          >
+            Next
+          </button>
         </nav>
       )}
     </section>

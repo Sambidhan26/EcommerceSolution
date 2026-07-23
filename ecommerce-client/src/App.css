@@ -4,14 +4,19 @@ a { color: inherit; }
 .site-header__content, .page, .hero__content { width: min(100% - 2rem, 72rem); margin-inline: auto; }
 .site-header__content { display: flex; align-items: center; justify-content: space-between; min-height: 4.25rem; }
 .brand { color: #1c1917; font-size: 1.125rem; font-weight: 750; letter-spacing: -.02em; text-decoration: none; }
-.site-nav { display: flex; gap: 1.25rem; }
+.site-nav { display: flex; align-items: center; gap: 1.1rem; }
 .site-nav a { color: #57534e; font-size: .925rem; font-weight: 600; text-decoration: none; }
 .site-nav a:hover, .site-nav a.active { color: #0f766e; }
+.site-nav .nav-register { padding: .5rem .75rem; border-radius: .5rem; color: #fff; background: #0f766e; }
+.site-nav .nav-register:hover, .site-nav .nav-register.active { color: #fff; background: #115e59; }
+.nav-button { padding: 0; border: 0; color: #57534e; background: transparent; font-size: .925rem; font-weight: 600; cursor: pointer; }
+.nav-button:hover { color: #0f766e; }
 .page { padding-block: 3.5rem; }
 .page h1, .page h2, .hero h1 { margin-top: 0; color: #1c1917; letter-spacing: -.035em; }
 .page h1 { margin-bottom: .5rem; font-size: clamp(2rem,5vw,3rem); }
 .muted { color: #78716c; }
 .error { padding: 1rem; border: 1px solid #fecaca; border-radius: .75rem; color: #991b1b; background: #fef2f2; }
+.success { padding: 1rem; border: 1px solid #bbf7d0; border-radius: .75rem; color: #166534; background: #f0fdf4; }
 .eyebrow { margin: 0 0 .5rem; color: #0f766e; font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
 .hero { padding-block: clamp(5rem,12vw,8.5rem); background: linear-gradient(135deg,#f0fdfa,#fafaf9 60%); }
 .hero h1 { max-width: 12ch; margin-bottom: 1rem; font-size: clamp(3rem,8vw,5.5rem); line-height: .98; }
@@ -72,13 +77,30 @@ a { color: inherit; }
 .product-details__description { color: #57534e; line-height: 1.75; }
 .stock { display: inline-block; margin-top: 1rem; padding: .4rem .7rem; border-radius: 99px; color: #9f1239; background: #fff1f2; font-size: .8rem; font-weight: 700; }
 .stock--available { color: #166534; background: #f0fdf4; }
+.auth-page { display: grid; min-height: calc(100vh - 4.25rem); padding: 3rem 1rem; place-items: center; background: linear-gradient(135deg,#f0fdfa,#fafaf9 65%); }
+.auth-card { width: min(100%,28rem); padding: clamp(1.5rem,5vw,2.5rem); border: 1px solid #e7e5e4; border-radius: 1rem; background: #fff; box-shadow: 0 20px 55px rgba(28,25,23,.08); }
+.auth-card h1 { margin: 0 0 .5rem; color: #1c1917; font-size: 2.25rem; letter-spacing: -.04em; }
+.auth-card > .muted { margin: 0 0 1.5rem; line-height: 1.6; }
+.auth-card .error { font-size: .9rem; }
+.auth-form { display: flex; flex-direction: column; margin-top: 1.5rem; }
+.auth-form label { margin: 0 0 .4rem; color: #44403c; font-size: .82rem; font-weight: 700; }
+.auth-form input { min-height: 2.85rem; margin-bottom: 1rem; padding: .65rem .75rem; border: 1px solid #d6d3d1; border-radius: .55rem; color: #292524; background: #fff; }
+.auth-form input:focus { outline: 3px solid #ccfbf1; border-color: #0f766e; }
+.auth-form button { min-height: 2.9rem; margin-top: .35rem; border: 0; border-radius: .6rem; color: #fff; background: #0f766e; font-weight: 700; cursor: pointer; }
+.auth-form button:hover:not(:disabled) { background: #115e59; }
+.auth-form button:disabled { cursor: wait; opacity: .65; }
+.auth-switch { margin: 1.4rem 0 0; color: #78716c; font-size: .9rem; text-align: center; }
+.auth-switch a { color: #0f766e; font-weight: 700; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
 @media (max-width:760px) {
+  .site-header__content { align-items: flex-start; flex-direction: column; gap: .75rem; padding-block: .8rem; }
+  .site-nav { width: 100%; overflow-x: auto; padding-bottom: .2rem; }
+  .site-nav > * { flex: 0 0 auto; }
   .filters { grid-template-columns: 1fr; }
   .product-details { grid-template-columns: 1fr; }
   .page-heading { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width:480px) {
-  .site-header__content { min-height: 3.75rem; }
   .site-nav { gap: .75rem; }
   .site-nav a { font-size: .85rem; }
   .page { padding-block: 2.5rem; }
