@@ -5,16 +5,24 @@ export interface ProductQuery {
   pageNumber?: number
   pageSize?: number
   categoryId?: number
-  search?: string
+  searchTerm?: string
+  sortBy?: string
+  sortDescending?: boolean
 }
 
 export const productApi = {
-  async getAll(query: ProductQuery = {}) {
-    const response = await axiosClient.get<ApiResponse<PagedResult<Product>>>('/products', { params: query })
+  async getFiltered(query: ProductQuery = {}) {
+    const response = await axiosClient.get<ApiResponse<PagedResult<Product>>>('/api/product/filter', {
+      params: query,
+    })
     return response.data
   },
   async getById(id: number) {
-    const response = await axiosClient.get<ApiResponse<Product>>(`/products/${id}`)
+    const response = await axiosClient.get<ApiResponse<Product>>(`/api/product/${id}`)
+    return response.data
+  },
+  async getFeatured() {
+    const response = await axiosClient.get<ApiResponse<Product[]>>('/api/product/featured')
     return response.data
   },
 }
