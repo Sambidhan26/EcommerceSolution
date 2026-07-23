@@ -1,4 +1,5 @@
 export type { ApiResponse, PagedResult } from './api'
+
 export type {
   AuthResponse,
   AuthState,
@@ -6,5 +7,17 @@ export type {
   LoginRequest,
   RegisterRequest,
 } from './auth'
-export type { Category } from './category'
-export type { Product } from './product'
+
+export type {
+  Category,
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+} from './category'
+
+export type { Cart, CartItem } from './cart'
+
+export type {
+  CreateProductRequest,
+  Product,
+  UpdateProductRequest,
+} from './product'

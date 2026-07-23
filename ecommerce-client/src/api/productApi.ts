@@ -1,4 +1,4 @@
-import type { PagedResult, Product } from '../types'
+import type { CreateProductRequest, PagedResult, Product, UpdateProductRequest } from '../types'
 import { axiosClient } from './axiosClient'
 
 export interface ProductQuery {
@@ -41,6 +41,14 @@ function normalizeProducts(value: unknown): Product[] {
   return Array.isArray(value) ? value.filter(isProduct) : []
 }
 
+function requireProduct(value: unknown): Product {
+  if (!isProduct(value)) {
+    throw new Error('The server returned an invalid product.')
+  }
+
+  return value
+}
+
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
@@ -72,10 +80,20 @@ function normalizePagedResult(
 }
 
 export const productApi = {
+  async getAll(): Promise<Product[]> {
+    const response = await axiosClient.get<unknown>('/api/product')
+    const data = unwrapData(response.data)
+    return normalizeProducts(data)
+  },
+
   async getFiltered(query: ProductQuery = {}): Promise<PagedResult<Product>> {
-    const response = await axiosClient.get<unknown>('/api/product/filter', { params: query })
+    const response = await axiosClient.get<unknown>('/api/product/filter', {
+      params: query,
+    })
+    const data = unwrapData(response.data)
+
     return normalizePagedResult(
-      unwrapData(response.data),
+      data,
       query.pageNumber ?? 1,
       query.pageSize ?? 8,
     )
@@ -89,6 +107,57 @@ export const productApi = {
 
   async getFeatured(): Promise<Product[]> {
     const response = await axiosClient.get<unknown>('/api/product/featured')
-    return normalizeProducts(unwrapData(response.data))
+    const data = unwrapData(response.data)
+    return normalizeProducts(data)
+  },
+
+  async createProduct(request: CreateProductRequest): Promise<Product> {
+    const response = await axiosClient.post<unknown>('/api/product', request)
+    return requireProduct(unwrapData(response.data))
+  },
+
+  async updateProduct(id: number, request: UpdateProductRequest): Promise<Product> {
+    const response = await axiosClient.put<unknown>(`/api/product/${id}`, request)
+    const data = response.data === undefined || response.data === null || response.data === ''
+      ? null
+      : unwrapData(response.data)
+
+    if (isProduct(data)) return data
+
+    const refreshed = await productApi.getById(id)
+    if (!refreshed) {
+      throw new Error('Product was updated, but the updated product could not be loaded.')
+    }
+
+    return refreshed
+  },
+
+  async deleteProduct(id: number): Promise<void> {
+    const response = await axiosClient.delete<unknown>(`/api/product/${id}`)
+    unwrapData(response.data)
+  },
+
+  async uploadImage(id: number, file: File): Promise<Product> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await axiosClient.post<unknown>(
+      `/api/product/${id}/image`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+
+    const data = response.data === undefined || response.data === null || response.data === ''
+      ? null
+      : unwrapData(response.data)
+
+    if (isProduct(data)) return data
+
+    const refreshed = await productApi.getById(id)
+    if (!refreshed) {
+      throw new Error('The image was uploaded, but the updated product could not be loaded.')
+    }
+
+    return refreshed
   },
 }

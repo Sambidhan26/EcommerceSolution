@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom'
 import type { Product } from '../types'
 import { formatCurrency } from '../utils/formatCurrency'
+import { resolveImageUrl } from '../utils/resolveImageUrl'
 
 interface ProductCardProps {
   product: Product
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const resolvedImageUrl = resolveImageUrl(product.imageUrl)
+
   return (
     <article className="product-card">
       <Link className="product-card__image-link" to={`/products/${product.id}`}>
-        {product.imageUrl ? (
-          <img className="product-card__image" src={product.imageUrl} alt="" />
+        {resolvedImageUrl ? (
+          <img className="product-card__image" src={resolvedImageUrl} alt={product.name} />
         ) : (
           <div className="product-card__placeholder" aria-hidden="true">No image</div>
         )}

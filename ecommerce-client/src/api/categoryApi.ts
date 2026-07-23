@@ -1,4 +1,4 @@
-import type { Category } from '../types'
+import type { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../types'
 import { axiosClient } from './axiosClient'
 
 interface ApiEnvelope {
@@ -38,5 +38,26 @@ export const categoryApi = {
     const response = await axiosClient.get<unknown>(`/api/category/${id}`)
     const data = unwrapData(response.data)
     return isCategory(data) ? data : null
+  },
+
+  async createCategory(request: CreateCategoryRequest): Promise<Category> {
+    const response = await axiosClient.post<unknown>('/api/category', request)
+    const data = unwrapData(response.data)
+
+    if (!isCategory(data)) {
+      throw new Error('The server returned an invalid category.')
+    }
+
+    return data
+  },
+
+  async updateCategory(id: number, request: UpdateCategoryRequest): Promise<void> {
+    const response = await axiosClient.put<unknown>(`/api/category/${id}`, request)
+    unwrapData(response.data)
+  },
+
+  async deleteCategory(id: number): Promise<void> {
+    const response = await axiosClient.delete<unknown>(`/api/category/${id}`)
+    unwrapData(response.data)
   },
 }

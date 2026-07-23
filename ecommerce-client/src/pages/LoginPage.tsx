@@ -37,7 +37,7 @@ export function LoginPage() {
       })
 
       setSuccess(result.message || 'Login successful.')
-      navigate('/products', { replace: true })
+      navigate(locationState?.from || '/products', { replace: true })
     } catch (requestError) {
       setError(getApiError(requestError, 'Unable to sign in. Check your email and password.'))
     } finally {

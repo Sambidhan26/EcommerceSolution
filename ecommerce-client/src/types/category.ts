@@ -3,3 +3,11 @@ export interface Category {
   name: string
   description?: string
 }
+
+export interface CreateCategoryRequest {
+  name: string
+}
+
+export interface UpdateCategoryRequest {
+  name: string
+}
