@@ -1,0 +1,14 @@
+#root { min-height: 100vh; }
+.site-header { border-bottom: 1px solid #e5e7eb; background: #fff; }
+.site-header__content, .page { width: min(100% - 2rem, 70rem); margin-inline: auto; }
+.site-header__content { display: flex; align-items: center; justify-content: space-between; min-height: 4rem; }
+.brand { color: #111827; font-size: 1.125rem; font-weight: 700; text-decoration: none; }
+.site-nav { display: flex; gap: 1rem; }
+.site-nav a { color: #4b5563; text-decoration: none; }
+.site-nav a.active { color: #2563eb; }
+.page { padding-block: 3rem; }
+.page h1 { margin-top: 0; }
+.muted { color: #6b7280; }
+.error { color: #b91c1c; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; padding: 0; list-style: none; }
+.card { padding: 1rem; border: 1px solid #e5e7eb; border-radius: .5rem; background: #fff; }
