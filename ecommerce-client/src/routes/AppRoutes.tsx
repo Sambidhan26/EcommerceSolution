@@ -8,10 +8,12 @@ import { AdminProductFormPage } from '../pages/admin/AdminProductFormPage'
 import { AdminProductsPage } from '../pages/admin/AdminProductsPage'
 import { CartPage } from '../pages/CartPage'
 import { CategoriesPage } from '../pages/CategoriesPage'
-import { ComingSoonPage } from '../pages/ComingSoonPage'
+import { CheckoutPage } from '../pages/CheckoutPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { OrderDetailsPage } from '../pages/OrderDetailsPage'
+import { OrdersPage } from '../pages/OrdersPage'
 import { ProductDetailsPage } from '../pages/ProductDetailsPage'
 import { ProductListPage } from '../pages/ProductListPage'
 import { RegisterPage } from '../pages/RegisterPage'
@@ -29,7 +31,9 @@ export function AppRoutes() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="cart" element={<CartPage />} />
-          <Route path="orders" element={<ComingSoonPage title="My Orders" />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:id" element={<OrderDetailsPage />} />
         </Route>
 
         <Route element={<AdminRoute />}>

@@ -27,6 +27,10 @@ namespace Ecommerce.API.Mapping
                     dest => dest.ProductName,
                     opt => opt.MapFrom(src => src.Product!.Name))
                 .ForMember(
+                    dest => dest.ImageUrl,
+                    opt => opt.MapFrom(src =>
+                        src.Product == null ? null : src.Product.ImageUrl))
+                .ForMember(
                     dest => dest.SubTotal,
                     opt => opt.MapFrom(src => src.UnitPrice * src.Quantity));
 

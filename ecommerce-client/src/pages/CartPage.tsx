@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { cartApi } from '../api/cartApi'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { LoadingMessage } from '../components/LoadingMessage'
+import { useCart } from '../context/useCart'
 import type { Cart } from '../types'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getApiError } from '../utils/getApiError'
@@ -16,6 +17,7 @@ const EMPTY_CART: Cart = {
 }
 
 export function CartPage() {
+  const { setCartCount } = useCart()
   const [cart, setCart] = useState<Cart>(EMPTY_CART)
   const [isLoading, setIsLoading] = useState(true)
   const [pendingItemId, setPendingItemId] = useState<number | null>(null)
@@ -27,7 +29,10 @@ export function CartPage() {
 
     cartApi.getCart()
       .then((cartResult) => {
-        if (isActive) setCart(cartResult)
+        if (isActive) {
+          setCart(cartResult)
+          setCartCount(cartResult.totalItems)
+        }
       })
       .catch((requestError: unknown) => {
         if (isActive) {
@@ -41,7 +46,7 @@ export function CartPage() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [setCartCount])
 
   const items = Array.isArray(cart.items) ? cart.items : []
   const isBusy = pendingItemId !== null || isClearing
@@ -52,7 +57,9 @@ export function CartPage() {
     setError('')
 
     try {
-      setCart(await cartApi.updateItem(cartItemId, safeQuantity))
+      const nextCart = await cartApi.updateItem(cartItemId, safeQuantity)
+      setCart(nextCart)
+      setCartCount(nextCart.totalItems)
     } catch (requestError) {
       setError(getApiError(requestError, 'Unable to update this item. Please try again.'))
     } finally {
@@ -65,7 +72,9 @@ export function CartPage() {
     setError('')
 
     try {
-      setCart(await cartApi.removeItem(cartItemId))
+      const nextCart = await cartApi.removeItem(cartItemId)
+      setCart(nextCart)
+      setCartCount(nextCart.totalItems)
     } catch (requestError) {
       setError(getApiError(requestError, 'Unable to remove this item. Please try again.'))
     } finally {
@@ -78,7 +87,9 @@ export function CartPage() {
     setError('')
 
     try {
-      setCart(await cartApi.clearCart())
+      const nextCart = await cartApi.clearCart()
+      setCart(nextCart)
+      setCartCount(nextCart.totalItems)
     } catch (requestError) {
       setError(getApiError(requestError, 'Unable to clear your cart. Please try again.'))
     } finally {
@@ -195,7 +206,10 @@ export function CartPage() {
               <span>Subtotal</span>
               <strong>{formatCurrency(cart.totalPrice || 0)}</strong>
             </div>
-            <p className="muted">Shipping and taxes are calculated at checkout.</p>
+            <p className="muted">Review your items and total before placing your order.</p>
+            <Link className="button button--primary cart-summary__checkout" to="/checkout">
+              Checkout
+            </Link>
           </aside>
         </div>
       )}

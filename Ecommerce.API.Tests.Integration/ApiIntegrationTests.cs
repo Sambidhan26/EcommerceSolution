@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Ecommerce.API.Common;
 using Ecommerce.API.DTOs.Auth;
 using Ecommerce.API.DTOs.Cart;
 using FluentAssertions;
@@ -44,6 +45,15 @@ namespace Ecommerce.API.Tests.Integration
             var cartResponse = await _client.GetAsync("/api/cart");
 
             cartResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var cart = await cartResponse.Content
+                .ReadFromJsonAsync<ApiResponse<CartDto>>();
+
+            cart.Should().NotBeNull();
+            cart!.Data.Should().NotBeNull();
+            cart.Data!.Items.Should().ContainSingle();
+            cart.Data.Items[0].ImageUrl.Should()
+                .Be("/images/products/logitech-g502-x.jpg");
         }
 
         [Fact]

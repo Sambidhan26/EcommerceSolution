@@ -5,6 +5,7 @@ import { productApi } from '../api/productApi'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { LoadingMessage } from '../components/LoadingMessage'
 import { useAuth } from '../context/useAuth'
+import { useCart } from '../context/useCart'
 import type { Product } from '../types'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getApiError } from '../utils/getApiError'
@@ -13,6 +14,7 @@ import { resolveImageUrl } from '../utils/resolveImageUrl'
 export function ProductDetailsPage() {
   const { id } = useParams()
   const { isAuthenticated } = useAuth()
+  const { setCartCount } = useCart()
   const location = useLocation()
   const navigate = useNavigate()
   const productId = Number(id)
@@ -66,7 +68,8 @@ export function ProductDetailsPage() {
     setCartSuccess('')
 
     try {
-      await cartApi.addItem(product.id, 1)
+      const nextCart = await cartApi.addItem(product.id, 1)
+      setCartCount(nextCart.totalItems)
       setCartSuccess(`${product.name} was added to your cart.`)
     } catch (requestError) {
       setCartError(getApiError(

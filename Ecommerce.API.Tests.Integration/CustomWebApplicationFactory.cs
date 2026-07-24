@@ -79,6 +79,7 @@ namespace Ecommerce.API.Tests.Integration
                     Price = 69.99m,
                     StockQuantity = 5,
                     IsFeatured = true,
+                    ImageUrl = "/images/products/logitech-g502-x.jpg",
                     CategoryId = 1
                 });
             }

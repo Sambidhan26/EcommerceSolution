@@ -17,6 +17,13 @@ export type {
 export type { Cart, CartItem } from './cart'
 
 export type {
+  CheckoutRequest,
+  Order,
+  OrderItem,
+  OrderStatus,
+} from './order'
+
+export type {
   CreateProductRequest,
   Product,
   UpdateProductRequest,

@@ -1,9 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
+import { useCart } from '../context/useCart'
 import { hasRole } from '../utils/roles'
 
 export function Layout() {
   const { isAuthenticated, logout, user } = useAuth()
+  const { cartCount } = useCart()
   const navigate = useNavigate()
   const isAdmin = hasRole(user?.role, 'Admin')
 
@@ -22,7 +24,14 @@ export function Layout() {
             <NavLink to="/products">Products</NavLink>
             {isAuthenticated ? (
               <>
-                <NavLink to="/cart">Cart</NavLink>
+                <NavLink
+                  aria-label={`Cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+                  className="cart-nav-link"
+                  to="/cart"
+                >
+                  Cart
+                  {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+                </NavLink>
                 <NavLink to="/orders">My Orders</NavLink>
                 {isAdmin && <NavLink to="/admin">Admin</NavLink>}
                 <button className="nav-button" type="button" onClick={() => { void handleLogout() }}>Logout</button>

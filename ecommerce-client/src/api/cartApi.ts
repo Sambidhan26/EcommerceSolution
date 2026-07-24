@@ -25,6 +25,26 @@ function readNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim()
+    ? value.trim()
+    : undefined
+}
+
+function readCartItemImageUrl(value: Record<string, unknown>): string | undefined {
+  const directImageUrl = readString(value.imageUrl)
+    ?? readString(value.productImageUrl)
+    ?? readString(value.image)
+
+  if (directImageUrl) return directImageUrl
+
+  if (isRecord(value.product)) {
+    return readString(value.product.imageUrl)
+  }
+
+  return undefined
+}
+
 function normalizeCartItem(value: unknown): CartItem | null {
   if (!isRecord(value)) return null
 
@@ -36,6 +56,7 @@ function normalizeCartItem(value: unknown): CartItem | null {
   const unitPrice = readNumber(value.unitPrice)
   const quantity = Math.max(1, Math.trunc(readNumber(value.quantity, 1)))
   const providedSubTotal = readNumber(value.subTotal, Number.NaN)
+  const imageUrl = readCartItemImageUrl(value)
 
   return {
     id,
@@ -46,9 +67,7 @@ function normalizeCartItem(value: unknown): CartItem | null {
     unitPrice,
     quantity,
     subTotal: Number.isFinite(providedSubTotal) ? providedSubTotal : unitPrice * quantity,
-    ...(typeof value.imageUrl === 'string' && value.imageUrl
-      ? { imageUrl: value.imageUrl }
-      : {}),
+    ...(imageUrl ? { imageUrl } : {}),
   }
 }
 
@@ -64,12 +83,16 @@ function normalizeCart(value: unknown): Cart {
     : []
   const calculatedTotalPrice = items.reduce((total, item) => total + item.subTotal, 0)
   const calculatedTotalItems = items.reduce((total, item) => total + item.quantity, 0)
+  const providedTotalItems = Math.max(
+    0,
+    Math.trunc(readNumber(value.totalItems, calculatedTotalItems)),
+  )
 
   return {
     id: readNumber(value.id),
     items,
     totalPrice: readNumber(value.totalPrice, calculatedTotalPrice),
-    totalItems: readNumber(value.totalItems, calculatedTotalItems),
+    totalItems: providedTotalItems || calculatedTotalItems,
   }
 }
 
